@@ -1,12 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
   <title id="title">LeisureLoop logo</title>
-  <desc id="desc">An abstract loop around a leaf and rising sun.</desc>
-  <rect width="128" height="128" rx="36" fill="#285B48"/>
-  <circle cx="64" cy="42" r="13" fill="#F5C96B"/>
-  <path d="M100 65c0 23-15 39-36 39-19 0-33-13-33-30 0-18 13-31 29-31 11 0 20 6 25 15" fill="none" stroke="#FFF9E9" stroke-linecap="round" stroke-width="8"/>
-  <path d="M33 58c0-21 14-35 34-35 16 0 29 9 34 23" fill="none" stroke="#E9855E" stroke-linecap="round" stroke-width="8"/>
-  <path d="M63 89c-2-18 5-31 23-36-1 17-9 31-23 36Z" fill="#BBD2AC"/>
-  <path d="M63 89c7-10 13-18 22-28" fill="none" stroke="#285B48" stroke-linecap="round" stroke-width="3"/>
-  <circle cx="101" cy="48" r="5" fill="#FFF9E9"/>
+  <desc id="desc">A modern double-loop monogram inspired by the letters L and L.</desc>
+  <rect width="128" height="128" rx="34" fill="#FFF9ED"/>
+  <path d="M40 27v45c0 18 11 29 29 29h21" fill="none" stroke="#285B48" stroke-linecap="round" stroke-linejoin="round" stroke-width="13"/>
+  <path d="M72 40c16 0 27 10 27 25 0 15-11 25-27 25H54" fill="none" stroke="#E9855E" stroke-linecap="round" stroke-linejoin="round" stroke-width="13"/>
+  <circle cx="89" cy="101" r="6.5" fill="#F1C66E"/>
 </svg>
 
