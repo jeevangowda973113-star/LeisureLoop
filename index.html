@@ -230,9 +230,9 @@ else {applyLocation("your area");setTimeout(()=>document.querySelector("#locatio
   async function loadVenues(){
     if(!db){empty('Connecting to LeisureLoop…');return;}
     let q=db.from('venues').select('id,title,category,description,address,city,hourly_rate').eq('status','approved').order('created_at',{ascending:false});
-    if(window.currentLocation && window.currentLocation!=='your area') q=q.ilike('city',window.currentLocation);
+    if(currentLocation && currentLocation!=='your area') q=q.ilike('city',currentLocation);
     const {data,error}=await q;if(error){console.error(error);empty('Could not load spaces');return;}
-    venues=data||[];const kind=window.activeKind||'all';const shown=kind==='all'?venues:venues.filter(v=>(v.category||'').toLowerCase().includes(kind.toLowerCase()));
+    venues=data||[];const kind=activeKind||'all';const shown=kind==='all'?venues:venues.filter(v=>(v.category||'').toLowerCase().includes(kind.toLowerCase()));
     if(!shown.length){empty('No approved spaces found yet');return;}
     cards.innerHTML=shown.map(v=>'<article class="card"><div class="card-img"><img src="https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=900&q=72" alt="'+esc(v.title)+'" loading="lazy"></div><div class="card-body"><div class="card-top"><span class="type">'+esc(v.category)+'</span><span class="rating">Verified space</span></div><h3>'+esc(v.title)+'</h3><p class="location">⌖ '+esc(v.address)+', '+esc(v.city)+'</p><p class="location">'+esc(v.description||'A local leisure space available by the hour.')+'</p><div class="card-bottom"><span class="price">'+money(v.hourly_rate)+' <small>/ hour</small></span><button class="book-btn" data-book="'+esc(v.id)+'">Request booking</button></div></div></article>').join('');
   }
@@ -282,7 +282,7 @@ else {applyLocation("your area");setTimeout(()=>document.querySelector("#locatio
   $('#addListing').onclick=()=>{
     if(!user||profile?.account_type!=='owner'){toast('Sign in with an owner account first.');return;}
     if(profile.owner_status!=='approved'){toast('Your owner account must be approved before submitting a space.');return;}
-    $('#listingForm').reset();$('#venueCity').value=window.currentLocation==='your area'?'':window.currentLocation;$('#listingModal').classList.add('open');
+    $('#listingForm').reset();$('#venueCity').value=currentLocation==='your area'?'':currentLocation;$('#listingModal').classList.add('open');
   };
   $('#closeListing').onclick=()=>$('#listingModal').classList.remove('open');
   $('#listingForm').addEventListener('submit',async e=>{
