@@ -231,8 +231,9 @@ else {applyLocation("your area");setTimeout(()=>document.querySelector("#locatio
       const result = await response.json().catch(()=>({}));
       if (!response.ok) throw new Error(result.error || 'Account deletion failed. Please contact support.');
       await client.auth.signOut({scope:'local'});
-      alert('Your LeisureLoop account has been deleted.');
-      location.href = '/';
+      settingsModal?.classList.remove('open');
+      alert('Your LeisureLoop account has been deleted. You will now return to the homepage.');
+      window.location.replace('/?account-deleted=1');
     } catch (error) {
       message.textContent = error.message || 'Could not delete your account. Please try again.';
       message.style.color = '#a44332';
