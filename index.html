@@ -83,6 +83,57 @@ if(savedLocation){applyLocation(savedLocation);document.querySelector("#manualLo
 else {applyLocation("your area");setTimeout(()=>document.querySelector("#locationModal").classList.add("open"),350);}
 
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(async function syncLeisureLoopAuth(){
+  const loginButton = document.getElementById('loginOpen');
+  const avatar = document.getElementById('avatar');
+  if (!loginButton || !window.supabase?.createClient) return;
+  try {
+    const response = await fetch('/api/supabase-config', {cache:'no-store'});
+    const config = await response.json();
+    if (!response.ok || !config.supabaseUrl || !config.publishableKey) return;
+    const client = window.supabase.createClient(config.supabaseUrl, config.publishableKey);
+    const paint = async (session) => {
+      if (!session?.user) {
+        loginButton.textContent = 'Log in';
+        loginButton.onclick = () => location.href = '/login.html';
+        loginButton.style.display = '';
+        if (avatar) avatar.style.display = 'none';
+        return;
+      }
+      const {data: profile} = await client.from('profiles').select('full_name,account_type,owner_status').eq('id', session.user.id).maybeSingle();
+      const name = profile?.full_name || session.user.user_metadata?.full_name || session.user.email || 'Account';
+      const initials = name.trim().split(/\s+/).slice(0,2).map(part=>part[0]).join('').toUpperCase();
+      loginButton.textContent = 'Log out';
+      loginButton.onclick = async () => {
+        loginButton.disabled = true;
+        const {error} = await client.auth.signOut();
+        if (error) { alert('Could not log out. Please try again.'); loginButton.disabled = false; return; }
+        location.reload();
+      };
+      loginButton.style.display = '';
+      if (avatar) {
+        avatar.textContent = initials || 'U';
+        avatar.title = profile?.account_type === 'owner' && profile?.owner_status !== 'approved'
+          ? name + ' · Owner verification pending'
+          : name;
+        avatar.style.display = 'grid';
+      }
+      if (profile?.account_type === 'owner' && profile.owner_status !== 'approved') {
+        const ownerLink = document.getElementById('ownerOpen');
+        if (ownerLink) ownerLink.textContent = 'Owner verification pending';
+      }
+    };
+    const {data:{session}} = await client.auth.getSession();
+    await paint(session);
+    client.auth.onAuthStateChange((_event, nextSession) => { paint(nextSession); });
+  } catch (error) {
+    console.error('LeisureLoop session check failed:', error);
+  }
+})();
+</script>
 </body>
 </html>
 
