@@ -121,6 +121,27 @@ else {applyLocation("your area");setTimeout(()=>document.querySelector("#locatio
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+window.getLeisureLoopSupabaseClient = window.getLeisureLoopSupabaseClient || (() => {
+  let clientPromise;
+  return async () => {
+    if (!clientPromise) {
+      clientPromise = (async () => {
+        const response = await fetch('/api/supabase-config', {cache:'no-store'});
+        const config = await response.json();
+        if (!response.ok || !config.supabaseUrl || !config.publishableKey) {
+          throw new Error(config.error || 'Supabase configuration is unavailable.');
+        }
+        if (!window.supabase?.createClient) {
+          throw new Error('Supabase authentication library is unavailable. Please refresh.');
+        }
+        return window.supabase.createClient(config.supabaseUrl, config.publishableKey);
+      })();
+    }
+    return clientPromise;
+  };
+})();
+</script>
+<script>
 (async function syncLeisureLoopAuth(){
   const loginButton = document.getElementById('loginOpen');
   const avatar = document.getElementById('avatar');
@@ -130,16 +151,16 @@ else {applyLocation("your area");setTimeout(()=>document.querySelector("#locatio
   const settingsMessage = document.getElementById('settingsMessage');
   if (!loginButton || !window.supabase?.createClient) return;
   try {
-    const response = await fetch('/api/supabase-config', {cache:'no-store'});
-    const config = await response.json();
-    if (!response.ok || !config.supabaseUrl || !config.publishableKey) return;
-    const client = window.supabase.createClient(config.supabaseUrl, config.publishableKey);
+    const client = await window.getLeisureLoopSupabaseClient();
     const paint = async (session) => {
       if (!session?.user) {
         loginButton.textContent = 'Log in';
         loginButton.onclick = () => location.href = '/login.html';
         loginButton.style.display = '';
         if (profileWrap) profileWrap.style.display = 'none';
+        if (avatar) avatar.style.display = 'none';
+        const ownerLink = document.getElementById('ownerOpen');
+        if (ownerLink) ownerLink.textContent = 'List your space';
         return;
       }
       const {data: profile} = await client.from('profiles').select('full_name,account_type,owner_status').eq('id', session.user.id).maybeSingle();
@@ -386,9 +407,7 @@ else {applyLocation("your area");setTimeout(()=>document.querySelector("#locatio
     btn.disabled=false;btn.textContent='Submit space for review';
   });
   try{
-    const response=await fetch('/api/supabase-config',{cache:'no-store'}),config=await response.json();
-    if(!response.ok||!config.supabaseUrl||!config.publishableKey)throw new Error(config.error||'Supabase configuration is unavailable.');
-    db=window.supabase.createClient(config.supabaseUrl,config.publishableKey);
+    db=await window.getLeisureLoopSupabaseClient();
     const auth=await db.auth.getSession();
     user=auth.data.session?.user||null;
     // Seed the role from auth metadata so owner navigation does not depend on
