@@ -149,7 +149,19 @@ window.getLeisureLoopSupabaseClient = window.getLeisureLoopSupabaseClient || (()
   const profileMenu = document.getElementById('profileMenu');
   const settingsModal = document.getElementById('settingsModal');
   const settingsMessage = document.getElementById('settingsMessage');
-  if (!loginButton || !window.supabase?.createClient) return;
+  if (!loginButton) return;
+
+  // Start in a signed-out-safe state immediately, before any network/auth request.
+  // The owner label and profile controls are enabled only after Supabase confirms a session.
+  loginButton.textContent = 'Log in';
+  loginButton.onclick = () => location.href = '/login.html';
+  loginButton.style.display = '';
+  if (profileWrap) profileWrap.style.display = 'none';
+  if (avatar) avatar.style.display = 'none';
+  const initialOwnerLink = document.getElementById('ownerOpen');
+  if (initialOwnerLink) initialOwnerLink.textContent = 'List your space';
+
+  if (!window.supabase?.createClient) return;
   try {
     const client = await window.getLeisureLoopSupabaseClient();
     const paint = async (session) => {
