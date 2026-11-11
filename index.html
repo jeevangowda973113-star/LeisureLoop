@@ -35,12 +35,12 @@ function renderCards(){const kind=activeKind==='all'?'spaces':' '+activeKind.toL
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
 $('#filters').onclick=e=>{const b=e.target.closest('[data-kind]');if(!b)return;document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x===b));activeKind=b.dataset.kind;renderCards()};$('#search').onclick=()=>{$('#explore').scrollIntoView({behavior:'smooth'})};$('#place').onchange=renderCards;$('#date').min=new Date().toISOString().slice(0,10);$('#date').value=$('#date').min;
 function ownerRoute(show){$('#storefront').style.display=show?'none':'block';$('#ownerView').style.display=show?'block':'none';if(show)renderOwner();window.scrollTo(0,0)}
-$('#ownerOpen').onclick=e=>{e.preventDefault();const role=localStorage.getItem('ll_role');if(role==='seller')ownerRoute(true);else $('#roleModal').classList.add('open')};$('#backStore').onclick=()=>ownerRoute(false);
+$('#ownerOpen').onclick=e=>{e.preventDefault();location.href='/login.html?mode=signup&role=owner'};$('#backStore').onclick=()=>ownerRoute(false);
 function renderOwner(){$('#requestCount').textContent='0';$('#listingCount').textContent='0';$('#ownerListings').innerHTML='<div class="request-empty">No facilities published yet. Add your first space when owner verification is connected.</div>';$('#requests').innerHTML='<div class="request-empty">No booking requests yet. Requests can only be received after you publish a verified facility.</div>'}
 $('#addListing').onclick=()=>toast('Owner verification and listing setup are coming next.');
 function selectRole(role){localStorage.setItem('ll_role',role);$('#roleModal').classList.remove('open');$('#loginOpen').style.display='none';$('#avatar').style.display='grid';$('#avatar').textContent=role==='seller'?'S':'B';if(role==='seller'){ownerRoute(true)}else{ownerRoute(false);toast('You are set up to discover spaces when they launch.')}}
-$('#loginOpen').onclick=()=>$('#roleModal').classList.add('open');$('#closeRole').onclick=()=>$('#roleModal').classList.remove('open');$('#roleModal').onclick=e=>{if(e.target.id==='roleModal')$('#roleModal').classList.remove('open')};document.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>selectRole(b.dataset.role));
-window.addEventListener('hashchange',()=>{if(location.hash==='#owner')ownerRoute(true)});const role=localStorage.getItem('ll_role');if(role){$('#loginOpen').style.display='none';$('#avatar').style.display='grid';$('#avatar').textContent=role==='seller'?'S':'B'}renderCards();if(location.hash==='#owner')ownerRoute(true);
+$('#loginOpen').onclick=()=>location.href='/login.html';$('#closeRole').onclick=()=>$('#roleModal').classList.remove('open');$('#roleModal').onclick=e=>{if(e.target.id==='roleModal')$('#roleModal').classList.remove('open')};document.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>selectRole(b.dataset.role));
+renderCards();
 // Location personalization: ask once on entry; visitors can always choose or change a city.
 let currentLocation = "your area";
 function applyLocation(city) {
