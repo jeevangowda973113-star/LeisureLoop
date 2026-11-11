@@ -310,10 +310,18 @@ else {applyLocation("your area");setTimeout(()=>document.querySelector("#locatio
   try{
     const response=await fetch('/api/supabase-config',{cache:'no-store'}),config=await response.json();
     if(!response.ok||!config.supabaseUrl||!config.publishableKey)throw new Error(config.error||'Supabase configuration is unavailable.');
-    db=window.supabase.createClient(config.supabaseUrl,config.publishableKey);const auth=await db.auth.getSession();user=auth.data.session?.user||null;
-    if(user){const result=await db.from('profiles').select('full_name,account_type,owner_status').eq('id',user.id).maybeSingle();profile=result.data||{account_type:user.user_metadata?.account_type||'buyer',owner_status:'pending'};}
-    if(user && profile?.account_type==='owner') $('#ownerOpen').textContent='Owner dashboard';
+    db=window.supabase.createClient(config.supabaseUrl,config.publishableKey);
+    const auth=await db.auth.getSession();
+    user=auth.data.session?.user||null;
+    // Seed the role from auth metadata so owner navigation does not depend on
+    // the profiles query completing. The profile query can finish afterwards.
+    profile=user?{full_name:user.user_metadata?.full_name||'',account_type:user.user_metadata?.account_type||'buyer',owner_status:'pending'}:null;
     readyResolve();
+    if(user){
+      const result=await db.from('profiles').select('full_name,account_type,owner_status').eq('id',user.id).maybeSingle();
+      if(result.data) profile={...profile,...result.data};
+    }
+    if(user && profile?.account_type==='owner') $('#ownerOpen').textContent='Owner dashboard';
     await loadVenues();
     $('#place').addEventListener('change',()=>setTimeout(loadVenues,0));$('#filters').addEventListener('click',()=>setTimeout(loadVenues,0));$('#manualLocation').addEventListener('change',()=>setTimeout(loadVenues,0));$('#skipLocation').addEventListener('click',()=>setTimeout(loadVenues,0));
     if(user&&profile?.account_type==='owner')$('#ownerOpen').textContent='Owner dashboard';
