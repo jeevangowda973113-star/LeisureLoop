@@ -63,14 +63,15 @@ create policy "Owners can view their own venues" on public.venues
 for select to authenticated using (owner_id = auth.uid());
 
 drop policy if exists "Approved owners can submit venues" on public.venues;
-create policy "Approved owners can submit venues" on public.venues
+drop policy if exists "Owners can submit venues for review" on public.venues;
+create policy "Owners can submit venues for review" on public.venues
 for insert to authenticated with check (
   owner_id = auth.uid()
   and exists (
     select 1 from public.profiles p
     where p.id = auth.uid()
       and p.account_type = 'owner'
-      and p.owner_status = 'approved'
+      and p.owner_status in ('pending', 'approved')
   )
 );
 
