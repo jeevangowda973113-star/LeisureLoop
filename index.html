@@ -233,14 +233,40 @@ else {applyLocation("your area");setTimeout(()=>document.querySelector("#locatio
     e.preventDefault();
     const link = $('#ownerOpen');
     link.setAttribute('aria-busy','true');
+    link.setAttribute('aria-disabled','true');
     try {
       await ready;
       if (!db) { toast('Account services are unavailable. Please refresh and try again.'); return; }
+      // Read the live Supabase session and profile at click time. The navbar
+      // and booking scripts use separate clients, so cached role state can be stale.
+      const sessionResult = await db.auth.getSession();
+      user = sessionResult.data?.session?.user || null;
       if (!user) { location.href='/login.html?mode=signup&role=owner'; return; }
-      if (profile?.account_type !== 'owner') { toast('Please sign in with your owner account.'); return; }
+      const profileResult = await db.from('profiles')
+        .select('full_name,account_type,owner_status')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (profileResult.error) {
+        console.error('Owner profile lookup failed:', profileResult.error);
+        toast('We could not load your owner account. Please refresh and try again.');
+        return;
+      }
+      profile = profileResult.data || {
+        full_name: user.user_metadata?.full_name || '',
+        account_type: user.user_metadata?.account_type || 'buyer',
+        owner_status: 'pending'
+      };
+      if (profile.account_type !== 'owner') {
+        toast('This account is not registered as an owner. Please sign in with your owner account.');
+        return;
+      }
       openDashboard();
+    } catch (error) {
+      console.error('Owner dashboard navigation failed:', error);
+      toast('Could not open your owner dashboard. Please try again.');
     } finally {
       link.removeAttribute('aria-busy');
+      link.removeAttribute('aria-disabled');
     }
   };
   function empty(message){cards.innerHTML='<article class="card" style="grid-column:1/-1"><div class="card-body" style="padding:34px;text-align:center"><h3>'+esc(message)+'</h3><p class="location" style="display:block">Approved facilities will appear here when an owner submits a space and it is approved.</p></div></article>';}
