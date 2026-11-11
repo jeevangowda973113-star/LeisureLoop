@@ -240,7 +240,7 @@ else {applyLocation("your area");setTimeout(()=>document.querySelector("#locatio
     if(!user){location.href='/login.html';return;}
     $('#storefront').style.display='none';$('#ownerView').style.display='block';window.scrollTo(0,0);
     const isOwner=profile?.account_type==='owner';$('#ownerView .owner-head h1').textContent=isOwner?'Owner dashboard':'My bookings';
-    $('#addListing').style.display=isOwner?'':'none';$('#ownerNotice').textContent=isOwner?(profile.owner_status==='approved'?'New spaces are submitted for administrator review before appearing publicly.':'Your owner account is awaiting approval.'):'See the status of your booking requests below.';
+    $('#addListing').style.display=isOwner?'':'none';$('#ownerNotice').textContent=isOwner?(profile.owner_status==='approved'?'New spaces are submitted for administrator review before appearing publicly.':'Your owner account is awaiting review. You can submit your facility now; it will remain private until the listing is approved.'):'See the status of your booking requests below.';
     $('#listingCount').parentElement.style.display=isOwner?'':'none';$('#requestCount').parentElement.style.display=isOwner?'':'none';refreshDashboard();
   }
   async function refreshDashboard(){
@@ -281,7 +281,6 @@ else {applyLocation("your area");setTimeout(()=>document.querySelector("#locatio
   });
   $('#addListing').onclick=()=>{
     if(!user||profile?.account_type!=='owner'){toast('Sign in with an owner account first.');return;}
-    if(profile.owner_status!=='approved'){toast('Your owner account must be approved before submitting a space.');return;}
     $('#listingForm').reset();$('#venueCity').value=currentLocation==='your area'?'':currentLocation;$('#listingModal').classList.add('open');
   };
   $('#closeListing').onclick=()=>$('#listingModal').classList.remove('open');
