@@ -163,9 +163,9 @@ else {applyLocation("your area");setTimeout(()=>document.querySelector("#locatio
         const isOpen = profileMenu.classList.toggle('open');
         avatar.setAttribute('aria-expanded', String(isOpen));
       };
-      if (profile?.account_type === 'owner' && profile.owner_status !== 'approved') {
+      if (profile?.account_type === 'owner') {
         const ownerLink = document.getElementById('ownerOpen');
-        if (ownerLink) ownerLink.textContent = 'Owner verification pending';
+        if (ownerLink) ownerLink.textContent = 'Owner dashboard';
       }
     };
     const {data:{session}} = await client.auth.getSession();
