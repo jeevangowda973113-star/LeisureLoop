@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /api/
 
-Sitemap: https://leisureloop.vercel.app/sitemap.xml
+Sitemap: https://leisureloop-ten.vercel.app/sitemap.xml
