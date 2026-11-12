@@ -280,7 +280,8 @@ window.getLeisureLoopSupabaseClient = window.getLeisureLoopSupabaseClient || (()
       });
       const result = await response.json().catch(()=>({}));
       if (!response.ok) throw new Error(result.error || 'Account deletion failed. Please contact support.');
-      passwordInput.value = '';\n      await client.auth.signOut({scope:'local'});
+      passwordInput.value = '';
+      await client.auth.signOut({scope:'local'});
       settingsModal?.classList.remove('open');
       alert('Your LeisureLoop account has been deleted. You will now return to the homepage.');
       window.location.replace('/?account-deleted=1');
