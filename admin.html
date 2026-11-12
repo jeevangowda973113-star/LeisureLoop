@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f6f5ef"><title>Admin review — LeisureLoop</title>
+<style>
+:root{--ink:#202a24;--muted:#747c74;--paper:#f6f5ef;--white:#fffefa;--green:#285b48;--line:#e6e5dc}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:14px Arial,sans-serif}.wrap{max-width:1050px;margin:auto;padding:28px 20px}.head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:25px}.head h1{font:500 34px Georgia,serif;margin:4px 0}.muted{color:var(--muted);font-size:13px}.panel{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:20px;margin:16px 0}.panel h2{font:500 23px Georgia,serif;margin:0 0 15px}.item{border-top:1px solid var(--line);padding:15px 0;display:flex;justify-content:space-between;gap:18px;align-items:center}.item:first-of-type{border-top:0}.details{min-width:0}.details strong{display:block;font-size:14px;margin-bottom:5px}.details small{display:block;color:var(--muted);line-height:1.5;overflow-wrap:anywhere}.actions{display:flex;gap:8px;flex:none}.btn{border:1px solid var(--line);border-radius:9px;background:white;padding:9px 13px;font-weight:700;cursor:pointer}.approve{background:var(--green);border-color:var(--green);color:white}.btn:disabled{opacity:.5;cursor:wait}.notice{padding:12px;border-radius:9px;background:#edf4ec;color:var(--green);font-size:13px;white-space:pre-wrap}.error{background:#fff0ed;color:#a44332}.empty{color:var(--muted);padding:12px 0}.hidden{display:none!important}@media(max-width:650px){.item{align-items:flex-start;flex-direction:column}.actions{width:100%}.actions .btn{flex:1}}
+</style></head><body><main class="wrap">
+<header class="head"><div><div class="muted">LEISURELOOP · PRIVATE ADMIN</div><h1>Review centre</h1><div class="muted">Approve owner accounts first, then review their venue listings.</div></div><button class="btn" id="logout">Log out</button></header>
+<div id="notice" class="notice hidden" role="status"></div>
+<section class="panel"><h2>Owner applications</h2><div id="owners" class="empty">Loading owner applications…</div></section>
+<section class="panel"><h2>Venue submissions</h2><div id="venues" class="empty">Loading venue submissions…</div></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
+let db=null;
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function note(t,bad=false){$('notice').textContent=t;$('notice').className='notice'+(bad?' error':'');}
+function rows(target,items,kind){
+ const el=$(target);
+ if(!items?.length){el.className='empty';el.textContent='No applications awaiting review.';return;}
+ el.className='';
+ el.innerHTML=items.map(x=>{
+  const owner=kind==='owner', id=owner?x.user_id:x.venue_id;
+  const title=owner?(x.full_name||'Owner account'):(x.title||'Untitled venue');
+  const sub=owner?[x.email,'Status: '+x.owner_status].filter(Boolean).join(' · '):[x.owner_name,'Category: '+x.category,x.address,x.city,'₹'+x.hourly_rate+'/hour','Status: '+x.status].filter(Boolean).join(' · ');
+  const description=owner?'Registered '+new Date(x.created_at).toLocaleDateString():(x.description||'No description provided.');
+  return '<article class="item"><div class="details"><strong>'+esc(title)+'</strong><small>'+esc(sub)+'</small><small>'+esc(description)+'</small></div><div class="actions"><button class="btn approve" data-kind="'+kind+'" data-id="'+esc(id)+'" data-decision="approved">Approve</button><button class="btn" data-kind="'+kind+'" data-id="'+esc(id)+'" data-decision="rejected">Reject</button></div></article>';
+ }).join('');
+}
+async function load(){
+ const [o,v]=await Promise.all([db.rpc('admin_list_pending_owners'),db.rpc('admin_list_pending_venues')]);
+ if(o.error||v.error){note((o.error||v.error).message+' If this is an admin access error, check the admin bootstrap step in the setup instructions.',true);return;}
+ rows('owners',o.data,'owner');rows('venues',v.data,'venue');
+}
+document.addEventListener('click',async e=>{
+ const b=e.target.closest('[data-kind]');if(!b)return;
+ b.disabled=true;
+ const owner=b.dataset.kind==='owner';
+ const fn=owner?'admin_review_owner':'admin_review_venue';
+ const args=owner?{p_user_id:b.dataset.id,p_decision:b.dataset.decision}:{p_venue_id:b.dataset.id,p_decision:b.dataset.decision};
+ const {error}=await db.rpc(fn,args);
+ if(error){note(error.message,true);b.disabled=false;return;}
+ note((owner?'Owner':'Venue')+' '+b.dataset.decision+'.');
+ await load();
+});
+$('logout').onclick=async()=>{if(db)await db.auth.signOut();location.href='/login.html';};
+(async()=>{
+ try{
+  const r=await fetch('/api/supabase-config',{cache:'no-store'}),c=await r.json();
+  if(!r.ok)throw new Error(c.error||'Could not load account configuration.');
+  db=window.supabase.createClient(c.supabaseUrl,c.publishableKey);
+  const {data,error}=await db.auth.getSession();
+  if(error)throw error;
+  if(!data.session){location.href='/login.html';return;}
+  await load();
+ }catch(e){note(e.message||'Admin page could not initialize.',true);}
+})();
+</script></body></html>
