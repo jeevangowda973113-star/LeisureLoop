@@ -100,6 +100,13 @@ begin
   if p_decision not in ('approved','rejected') then
     raise exception 'Invalid venue review decision.';
   end if;
+  if p_decision = 'approved' and not exists (
+    select 1 from public.venues v
+    join public.profiles p on p.id = v.owner_id
+    where v.id = p_venue_id and p.account_type = 'owner' and p.owner_status = 'approved'
+  ) then
+    raise exception 'Approve the venue owner account before approving this listing.';
+  end if;
   update public.venues
   set status = p_decision, updated_at = now()
   where id = p_venue_id and status in ('pending','rejected');
